@@ -1,88 +1,293 @@
-[![Open in Visual Studio Code](https://classroom.github.com/assets/open-in-vscode-2e0aaae1b6195c2367325f4f02e2d04e9abb55f0b24a779b69b11b9e10269abc.svg)](https://classroom.github.com/online_ide?assignment_repo_id=19940308&assignment_repo_type=AssignmentRepo)
-# Testing and Debugging MERN Applications
+# MERN Bug Tracker
 
-This assignment focuses on implementing comprehensive testing strategies for a MERN stack application, including unit testing, integration testing, and end-to-end testing, along with debugging techniques.
+A full-stack bug tracking application built with the MERN stack (MongoDB, Express, React, Node.js). This project demonstrates systematic testing and debugging practices for both backend and frontend.
 
-## Assignment Overview
+---
 
-You will:
-1. Set up testing environments for both client and server
-2. Write unit tests for React components and server functions
-3. Implement integration tests for API endpoints
-4. Create end-to-end tests for critical user flows
-5. Apply debugging techniques for common MERN stack issues
+## Testing Strategy & Test Files Overview
+
+This section outlines the complete testing implementation for the MERN Bug Tracker project, including unit, integration, and end-to-end (E2E) testing. The goal is to ensure that all components of the application are reliable and maintainable through consistent testing practices.
+
+### 🧪 Test File Structure
+
+```
+week-6-test-debug-assignment-Lagat-max/
+├── client/
+│   └── src/
+│       └── tests/
+│           ├── unit/
+│           │   ├── BugForm.test.jsx         # Unit tests for form component
+│           │   └── Button.test.jsx          # Unit tests for button component
+│           └── integration/
+│               └── BugFlow.test.jsx         # Integration tests for bug flow
+│   └── cypress/
+│       └── e2e/
+│           └── bug-tracker.cy.js            # E2E tests for user flows
+├── server/
+│   └── tests/
+│       ├── unit/
+│       │   └── validateBug.test.js          # Unit tests for validation helpers
+│       └── integration/
+│           └── bugs.test.js                 # Integration tests for CRUD routes
+```
+
+### 🧩 Testing Strategy
+
+#### 🔹 Unit Testing
+
+- **Client:** Tested individual components like BugForm and Button, ensuring proper field rendering, validation behavior, and controlled input updates.
+- **Server:** Focused on utility and validation functions. Mocked database operations using `jest.mock()`.
+
+#### 🔹 Integration Testing
+
+- **Client:** Verified that the BugFlow test simulates adding, listing, and error handling in the UI.
+- **Server:** Simulated full API requests using Supertest to test endpoints (POST, PUT, DELETE) and middleware responses.
+
+#### 🔹 End-to-End Testing
+
+- **Cypress** is used for E2E tests (`client/cypress/e2e/bug-tracker.cy.js`), simulating real user flows:
+  - Creating a bug via the form
+  - Verifying it appears in the list
+  - Updating its status
+  - Deleting it from the list
+
+### 📄 Sample Test File Snippets
+
+#### 🔸 Unit Test (BugForm)
+
+```js
+import { render, screen, fireEvent } from '@testing-library/react';
+import BugForm from '../../components/BugForm';
+
+test('renders bug form with title input', () => {
+  render(<BugForm onSubmit={() => {}} />);
+  expect(screen.getByPlaceholderText(/title/i)).toBeInTheDocument();
+});
+```
+
+#### 🔸 Integration Test (API Route)
+
+```js
+const request = require('supertest');
+const express = require('express');
+const bugsRouter = require('../../routes/bugs');
+const app = express();
+app.use(express.json());
+app.use('/api/bugs', bugsRouter);
+
+describe('POST /api/bugs', () => {
+  it('should create a new bug', async () => {
+    const res = await request(app).post('/api/bugs').send({ title: 'Login fails', description: 'Error', status: 'open' });
+    expect(res.statusCode).toEqual(201);
+    expect(res.body).toHaveProperty('_id');
+  });
+});
+```
+
+#### 🔸 E2E Test (Cypress)
+
+```js
+describe('Bug Tracker E2E', () => {
+  it('should add and display a bug', () => {
+    cy.visit('http://localhost:3000');
+    cy.get('input[name="title"]').type('E2E Bug');
+    cy.get('textarea[name="description"]').type('E2E bug description');
+    cy.get('button[type="submit"]').click();
+    cy.contains('E2E Bug').should('exist');
+  });
+});
+```
+
+### 📊 Coverage and Continuous Testing
+
+- Code coverage tracked using the `--coverage` flag in Jest.
+- Future scope: integrate with GitHub Actions for CI/CD test automation.
+
+---
+
+## Features
+- Report new bugs via a form
+- View a list of all reported bugs
+- Update bug statuses (open, in-progress, resolved)
+- Delete bugs
+- Robust error handling (backend and frontend)
+- Unit and integration tests for both backend and frontend
+- Debugging tools and techniques demonstrated
+
+---
+
+## Test Coverage
+
+After running tests with coverage enabled, you can find the coverage reports in the `coverage/` folders of both the backend and frontend. Below are screenshots of the coverage summary pages:
+
+**Backend Coverage:**
+![Backend Coverage](coverage-screenshots/backend-coverage.png)
+
+**Frontend Coverage:**
+![Frontend Coverage](coverage-screenshots/frontend-coverage.png)
+
+To generate these reports yourself:
+- Backend: `cd server && npm test -- --coverage`
+- Frontend: `cd client && npm test -- --coverage`
+
+---
+
+## ### 3. Setup MongoDB Atlas
+
+1. Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register) and create a free account.
+2. Create a new project and a free-tier cluster.
+3. Under **Database Access**, create a user with a password.
+4. Under **Network Access**, add your IP address or allow access from anywhere.
+5. Click **Connect** > **Connect your application**, and copy the connection string.
+6. Replace `<username>`, `<password>`, and `<dbname>` in the string with your values.
+7. Paste this into your `.env` file:
+```env
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/bugtracker?retryWrites=true&w=majority
+
+## E2E Testing (Cypress)
+
+End-to-end tests are implemented using [Cypress](https://www.cypress.io/).
+
+- E2E test file: `client/cypress/e2e/bug-tracker.cy.js`
+- Cypress config: `client/cypress.config.js`
+
+### Running E2E Tests
+
+1. Install Cypress (if not already):
+   ```sh
+   cd client
+   npm install cypress --save-dev
+   ```
+2. Start your backend (`npm start` in `server/`) and frontend (`npm start` in `client/`).
+3. In a new terminal, run:
+   ```sh
+   npx cypress open
+   ```
+   or for headless mode:
+   ```sh
+   npx cypress run
+   ```
+4. Select the E2E test and run it in the Cypress UI or let it run headlessly.
+
+---
 
 ## Project Structure
+```
+server/           # Backend (Express, Mongoose)
+  models/
+  controllers/
+  routes/
+  middleware/
+  helpers/
+  tests/
+client/           # Frontend (React)
+  src/
+    components/
+    api/
+    tests/
+```
 
-```
-mern-testing/
-├── client/                 # React front-end
-│   ├── src/                # React source code
-│   │   ├── components/     # React components
-│   │   ├── tests/          # Client-side tests
-│   │   │   ├── unit/       # Unit tests
-│   │   │   └── integration/ # Integration tests
-│   │   └── App.jsx         # Main application component
-│   └── cypress/            # End-to-end tests
-├── server/                 # Express.js back-end
-│   ├── src/                # Server source code
-│   │   ├── controllers/    # Route controllers
-│   │   ├── models/         # Mongoose models
-│   │   ├── routes/         # API routes
-│   │   └── middleware/     # Custom middleware
-│   └── tests/              # Server-side tests
-│       ├── unit/           # Unit tests
-│       └── integration/    # Integration tests
-├── jest.config.js          # Jest configuration
-└── package.json            # Project dependencies
-```
+---
 
 ## Getting Started
 
-1. Accept the GitHub Classroom assignment invitation
-2. Clone your personal repository that was created by GitHub Classroom
-3. Follow the setup instructions in the `Week6-Assignment.md` file
-4. Explore the starter code and existing tests
-5. Complete the tasks outlined in the assignment
-
-## Files Included
-
-- `Week6-Assignment.md`: Detailed assignment instructions
-- Starter code for a MERN application with basic test setup:
-  - Sample React components with test files
-  - Express routes with test files
-  - Jest and testing library configurations
-  - Example tests for reference
-
-## Requirements
-
-- Node.js (v18 or higher)
-- MongoDB (local installation or Atlas account)
+### Prerequisites
+- Node.js (v14+ recommended)
 - npm or yarn
-- Basic understanding of testing concepts
+- MongoDB (local or Atlas)
 
-## Testing Tools
+### Installation
 
-- Jest: JavaScript testing framework
-- React Testing Library: Testing utilities for React
-- Supertest: HTTP assertions for API testing
-- Cypress/Playwright: End-to-end testing framework
-- MongoDB Memory Server: In-memory MongoDB for testing
+#### 1. Clone the repository
+```
+git clone <repo-url>
+cd week-6-test-debug-assignment-Lagat-max
+```
 
-## Submission
+#### 2. Install backend dependencies
+```
+cd server
+npm install
+```
 
-Your work will be automatically submitted when you push to your GitHub Classroom repository. Make sure to:
+#### 3. Install frontend dependencies
+```
+cd ../client
+npm install
+```
 
-1. Complete all required tests (unit, integration, and end-to-end)
-2. Achieve at least 70% code coverage for unit tests
-3. Document your testing strategy in the README.md
-4. Include screenshots of your test coverage reports
-5. Demonstrate debugging techniques in your code
+---
 
-## Resources
+## Running the Application
 
-- [Jest Documentation](https://jestjs.io/docs/getting-started)
-- [React Testing Library Documentation](https://testing-library.com/docs/react-testing-library/intro/)
-- [Supertest Documentation](https://github.com/visionmedia/supertest)
-- [Cypress Documentation](https://docs.cypress.io/)
-- [MongoDB Testing Best Practices](https://www.mongodb.com/blog/post/mongodb-testing-best-practices) 
+### 1. Start MongoDB
+Ensure MongoDB is running locally or update the `MONGO_URI` in `server/server.js` to your Atlas connection string.
+
+### 2. Start the backend server
+```
+cd server
+npm start
+```
+
+### 3. Start the frontend React app
+```
+cd ../client
+npm start
+```
+
+- The backend runs on [http://localhost:5000](http://localhost:5000)
+- The frontend runs on [http://localhost:3000](http://localhost:3000)
+
+---
+
+## Testing
+
+### Backend
+- **Unit tests:** `npm test` (in `server/`)
+- **Integration tests:** API routes tested with Supertest and Jest, with database calls mocked
+
+### Frontend
+- **Unit tests:** `npm test` (in `client/`)
+- **Integration tests:** React Testing Library for component and flow tests
+
+---
+
+## Debugging Techniques Used
+- **Console logs:** Used throughout for tracking values (see code for explicit examples)
+- **Chrome DevTools:** Inspect network requests and React component state
+- **Node.js Inspector:** Run backend with `node --inspect server/server.js` for step debugging
+- **Error Boundaries:** React error boundary component for graceful UI error handling
+- **Express Middleware:** Centralized error handler for backend
+
+---
+
+## Error Handling
+- **Backend:** All errors are caught and formatted by Express middleware
+- **Frontend:** ErrorBoundary component catches and displays UI errors; API errors are shown to the user
+
+---
+
+## Testing Approach & Coverage
+- **Backend:**
+  - Unit tests for helper functions (e.g., validation)
+  - Integration tests for all API endpoints (create, update, delete, list bugs)
+  - Database calls are mocked for isolation
+- **Frontend:**
+  - Unit tests for components (form, button)
+  - Integration tests for user flows (adding, listing, error states)
+  - UI tested for empty, loading, and error states
+
+---
+
+## Intentional Bugs & Debugging
+- To practice debugging, you can introduce a typo (e.g., change `fetchBugs` to `fetchBugz` in `App.jsx`) and use console logs, DevTools, or the Node inspector to trace and fix the error.
+
+---
+
+## Author
+- [Amos Kiplagat]
+
+---
+
+## License
+This project is for educational purposes. 
